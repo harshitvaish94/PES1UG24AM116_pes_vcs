@@ -600,3 +600,179 @@ The following questions cover filesystem concepts beyond the implementation scop
 - **Git Internals** (Pro Git book): https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain
 - **Git from the inside out**: https://codewords.recurse.com/issues/two/git-from-the-inside-out
 - **The Git Parable**: https://tom.preston-werner.com/2009/05/19/the-git-parable.html
+
+# PES Version Control System (PES-VCS)
+
+---
+
+## 📸 Phase 1 – Object Store
+
+### Screenshot 1A
+<img src="https://github.com/user-attachments/assets/f94f670c-b826-4b36-b02f-7f3908afa01d" width="800"/>
+
+### Screenshot 1B
+<img src="https://github.com/user-attachments/assets/1e7355e9-8a7e-409b-b43f-ee71eaf5ece5" width="800"/>
+
+---
+
+## 📸 Phase 2 – Tree
+
+### Screenshot 2A
+<img src="https://github.com/user-attachments/assets/288f3f25-37c8-484b-8cea-3d97d2e8b57b" width="800"/>
+
+### Screenshot 2B
+<img src="https://github.com/user-attachments/assets/ffd4549e-530a-4eee-9330-5d5e58bb695c" width="800"/>
+
+---
+
+## 📸 Phase 3 – Index
+
+### Screenshot 3A
+<img src="https://github.com/user-attachments/assets/350d3170-f13b-4e67-b962-2ba2706eefb8" width="800"/>
+
+### Screenshot 3B
+<img src="https://github.com/user-attachments/assets/2d7a1eab-7338-4693-98fb-887630ccb65b" width="800"/>
+
+---
+
+## 📸 Phase 4 – Commit
+
+### Screenshot 4A
+<img src="https://github.com/user-attachments/assets/0099ec7f-1acf-411d-aad6-b7986a99135e" width="800"/>
+
+### Screenshot 4B
+<img src="https://github.com/user-attachments/assets/63fca6f2-1871-4561-931e-5b06f2af93b4" width="800"/>
+
+### Screenshot 4C
+<img src="https://github.com/user-attachments/assets/173dd33c-eac1-4700-8120-a78b4cb199b8" width="800"/>
+
+---
+
+#  Q5: Why is content-addressable storage used in PES-VCS?
+
+Content-addressable storage (CAS) is a method of storing data where the location or identifier is derived from the content itself using a cryptographic hash function such as SHA-256.
+
+In PES-VCS, every object (blob, tree, commit) is stored using the hash of its content instead of its filename.
+
+## Key Reasons:
+
+### 1. Data Deduplication
+- Identical files produce the same hash.
+- Only one copy is stored.
+- Saves storage space and avoids redundancy.
+
+**Example:**  
+If `file1.txt` and `file2.txt` have the same content, only one blob object is stored.
+
+---
+
+### 2. Data Integrity & Corruption Detection
+- Even a small change results in a completely different hash.
+- When reading an object, its hash is recomputed and verified.
+
+ If mismatch → corruption detected.
+
+---
+
+### 3. Immutability
+- Objects are never modified after creation.
+- Any change creates a new object with a new hash.
+
+ Ensures:
+- reliable history  
+- safe version tracking  
+
+---
+
+### 4. Efficient Version Control
+- Only changed content is stored.
+- Unchanged content is reused.
+
+ Makes commits fast and storage-efficient.
+
+---
+
+### 5. Unique Identification
+- Each object is uniquely identified by its hash.
+- No need for filenames.
+
+---
+
+### Conclusion:
+Content-addressable storage provides:
+- efficiency  
+- integrity  
+- immutability  
+- deduplication  
+
+It is the core principle behind Git and PES-VCS.
+
+---
+
+#  Q6: Why are atomic writes used?
+
+Atomic writes ensure that file updates are safe and consistent, even during crashes or failures.
+
+PES-VCS uses:
+- temporary files  
+- `fsync()`  
+- `rename()`  
+
+---
+
+## Problem Without Atomic Writes
+- Program crash → file corruption  
+- Partial writes → inconsistent data  
+- Repository may break  
+
+---
+
+## Atomic Write Process
+
+### 1. Write to Temporary File
+- Data is written to a `.tmp` file.
+- Original file remains unchanged.
+
+ Prevents corruption.
+
+---
+
+### 2. Flush to Disk (fsync)
+- Forces data to be written to disk.
+- Prevents data loss due to buffering.
+
+---
+
+### 3. Atomic Rename
+- Replaces the original file in one step.
+- Either old or new file exists (never partial).
+
+---
+
+## Benefits
+
+### Consistency
+Repository always remains valid.
+
+### Crash Safety
+No partial or corrupted files.
+
+### Reliability
+Ensures durability of data.
+
+---
+
+## Usage in PES-VCS
+- Object storage  
+- Index file writing  
+- HEAD updates  
+
+---
+
+### Conclusion:
+Atomic writes guarantee:
+- safe updates  
+- data integrity  
+- crash resistance  
+
+They are essential for building a reliable version control system.
